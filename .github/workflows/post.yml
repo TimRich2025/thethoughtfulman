@@ -1,0 +1,34 @@
+name: post
+on:
+  schedule:
+    - cron: "*/15 * * * *"   # laeuft in UTC, das Skript prueft selbst Berliner Zeit
+  workflow_dispatch: {}
+permissions:
+  contents: write
+concurrency:
+  group: ttm-post
+  cancel-in-progress: false
+jobs:
+  post:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      - run: pip install -r requirements.txt
+      - name: faelliges reel veroeffentlichen
+        env:
+          IG_ACCESS_TOKEN: ${{ secrets.IG_ACCESS_TOKEN }}
+          IG_USER_ID: ${{ secrets.IG_USER_ID }}
+        run: python post.py
+      - name: queue-stand speichern
+        if: always()
+        run: |
+          if [ -n "$(git status --porcelain queue.csv)" ]; then
+            git config user.name "thethoughtfulman"
+            git config user.email "bot@users.noreply.github.com"
+            git add queue.csv
+            git commit -m "queue: reel als gepostet markiert"
+            git push
+          fi
