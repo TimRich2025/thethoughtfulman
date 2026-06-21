@@ -1,7 +1,7 @@
 name: post
 on:
   schedule:
-    - cron: "*/15 * * * *"   # laeuft in UTC, das Skript prueft selbst Berliner Zeit
+    - cron: "*/5 * * * *"   # laeuft in UTC, das Skript prueft selbst Berliner Zeit
   workflow_dispatch: {}
 permissions:
   contents: write
