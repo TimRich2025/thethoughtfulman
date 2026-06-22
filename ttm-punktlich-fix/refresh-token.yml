@@ -1,0 +1,40 @@
+name: token-refresh
+on:
+  schedule:
+    - cron: "17 3 * * *"   # taeglich 03:17 UTC: frischt den IG-Token auf, verlaengert ihn um 60 Tage
+  workflow_dispatch: {}
+permissions:
+  contents: read
+concurrency:
+  group: ttm-token
+  cancel-in-progress: false
+jobs:
+  refresh:
+    runs-on: ubuntu-latest
+    steps:
+      - name: IG-Token auffrischen und Secret aktualisieren
+        env:
+          IG_ACCESS_TOKEN: ${{ secrets.IG_ACCESS_TOKEN }}
+          GH_TOKEN: ${{ secrets.GH_PAT }}
+        run: |
+          set -e
+          resp=$(curl -s "https://graph.instagram.com/refresh_access_token?grant_type=ig_refresh_token&access_token=${IG_ACCESS_TOKEN}")
+          new=$(printf '%s' "$resp" | jq -r '.access_token // empty')
+          if [ -n "$new" ]; then
+            echo "Token aufgefrischt. Aktualisiere Secret IG_ACCESS_TOKEN."
+            gh secret set IG_ACCESS_TOKEN --repo "$GITHUB_REPOSITORY" --body "$new"
+            echo "Fertig. Token gilt wieder 60 Tage."
+          else
+            echo "Kein neuer Token erhalten (Token evtl. juenger als 24h, am ersten Tag normal)."
+            echo "Antwort der API: $resp"
+          fi
+      - name: ALARM wenn Refresh hart scheitert
+        if: failure()
+        env:
+          GH_TOKEN: ${{ secrets.GH_PAT }}
+        run: |
+          offen=$(gh issue list --repo "$GITHUB_REPOSITORY" --state open --search "TOKEN-REFRESH GESTOPPT in:title" --json number --jq 'length' 2>/dev/null || echo 0)
+          if [ "${offen:-0}" = "0" ]; then
+            printf '%s\n\n%s\n' "Der taegliche Token-Refresh ist hart gescheitert. Bitte GH_PAT und IG_ACCESS_TOKEN pruefen." "Lauf-Log: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}" > /tmp/i.md
+            gh issue create --repo "$GITHUB_REPOSITORY" --title "TOKEN-REFRESH GESTOPPT" --body-file /tmp/i.md || true
+          fi
