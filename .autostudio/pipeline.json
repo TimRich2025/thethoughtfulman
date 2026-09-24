@@ -8,5 +8,7 @@
   "queuePath": "queue.csv",
   "refreshWorkflow": "refresh-token.yml",
   "tz": "Europe/Berlin",
-  "toleranceMinutes": 45
+  "toleranceMinutes": 45,
+  "lastStatus": "fehler",
+  "lastSweepAt": "2026-09-24T14:28:15.198Z"
 }
