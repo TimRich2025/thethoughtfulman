@@ -1,0 +1,11 @@
+{
+  "name": "TheThoughtfulMan",
+  "platform": "instagram",
+  "category": "Mindset",
+  "state": "active",
+  "runner": "github_actions",
+  "workflow": "post.yml",
+  "queuePath": "queue.csv",
+  "tz": "Europe/Berlin",
+  "toleranceMinutes": 45
+}
