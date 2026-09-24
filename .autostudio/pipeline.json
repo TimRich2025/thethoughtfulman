@@ -7,5 +7,7 @@
   "workflow": "post.yml",
   "queuePath": "queue.csv",
   "tz": "Europe/Berlin",
-  "toleranceMinutes": 45
+  "toleranceMinutes": 45,
+  "lastStatus": "fehler",
+  "lastSweepAt": "2026-09-24T09:19:22.133Z"
 }
